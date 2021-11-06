@@ -24,4 +24,7 @@ func main() {
 	version := os.Getenv("NOTION_API_VERSION")
 	page := os.Getenv("NOTION_PAGE_ID")
 
+	notion := Notion{path, key, version}
+	notion.Fetch(page)
+
 }
