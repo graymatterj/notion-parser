@@ -23,8 +23,10 @@ func main() {
 	key := os.Getenv("NOTION_API_KEY")
 	version := os.Getenv("NOTION_API_VERSION")
 	page := os.Getenv("NOTION_PAGE_ID")
+	database := os.Getenv("NOTION_DATABASE_ID")
 
 	notion := Notion{path, key, version}
 	notion.Fetch(page)
+	notion.Fetch(DatabaseType, database)
 
 }

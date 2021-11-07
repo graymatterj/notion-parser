@@ -9,8 +9,10 @@ import (
 	"errors"
 )
 
+const DatabaseType = "Database"
 const BlockType = "Block"
 
+var DatabasePath = "/databases/%s/query"
 var BlockPath = "/blocks/%s/children"
 
 var ErrTypeNotFound = errors.New("Error, could not find request type")
@@ -75,6 +77,10 @@ func fetchData(ApiKey, ApiVersion, RequestPath, RequestType string) *http.Respon
 
 func buildRequestPath(Type, Path, ObjectId string) (requestPath, requestMethod string, err error) {
 	switch Type {
+	case DatabaseType:
+		println("Database Type")
+		requestPath = Path + DatabasePath
+		requestMethod = "POST"
 	case BlockType:
 		println("Block Type")
 		requestPath = Path + BlockPath
