@@ -19,6 +19,21 @@ type Notion struct {
 	path, key, version string
 }
 
+type Response struct {
+	Object string `json:"object"`
+	Results []struct {
+		Object string `json:"object"`
+		Id string `json:"id"`
+		LastEditedTime string `json:"last_edited_time"`
+		HasChildren bool `json:"has_children"`
+		Paragraph struct {
+			Text []struct {
+				PlainText string `json:"plain_text"`
+			} `json:"text"`
+		} `json:"paragraph"`
+	} `json:"results"`
+}
+
 func (n Notion) Fetch(Type, ObjectId string) {
 	requestPath, requestMethod, _ := buildRequestPath(Type, n.path, ObjectId)
 	response := fetchData(n.key, n.version, requestPath, requestMethod)
@@ -26,6 +41,14 @@ func (n Notion) Fetch(Type, ObjectId string) {
 	log.Println("Retrieved Response from API:")
 	bodyBytes, _ := ioutil.ReadAll(response.Body)
 	log.Println(string(bodyBytes))
+
+	var result Response
+	if err := json.Unmarshal(bodyBytes, &result); err != nil {
+		println("Unmarshal 1 failed")
+		println(err.Error())
+	}
+
+	fmt.Println(PrettyPrint(result))
 }
 
 func fetchData(ApiKey, ApiVersion, RequestPath, RequestType string) *http.Response{
@@ -63,4 +86,9 @@ func buildRequestPath(Type, Path, ObjectId string) (requestPath, requestMethod s
 	}
 	requestPath = fmt.Sprintf(requestPath, ObjectId)
 	return
+}
+
+func PrettyPrint(i interface{}) string {
+    s, _ := json.MarshalIndent(i, "", "\t")
+    return string(s)
 }
