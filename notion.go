@@ -11,9 +11,11 @@ import (
 
 const DatabaseType = "Database"
 const BlockType = "Block"
+const PageType = "Page"
 
 const DatabasePath = "/databases/%s/query"
 const BlockPath = "/blocks/%s/children"
+const PagePath = "/pages/%s"
 
 var ErrTypeNotFound = errors.New("Error, could not find request type")
 
@@ -93,6 +95,10 @@ func buildRequestPath(Type, Path, ObjectId string) (requestPath, requestMethod s
 		println("Block Type")
 		requestPath = Path + BlockPath
 		requestMethod = "GET"
+	case PageType:
+		println("Page Type")
+		requestPath = Path + PagePath
+		requestMethod = "PATCH"
 	default:
 		println("Could not find request type")
 		err = ErrTypeNotFound
