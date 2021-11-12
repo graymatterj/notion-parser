@@ -21,19 +21,27 @@ type Notion struct {
 	path, key, version string
 }
 
-type Response struct {
+type NotionResponse struct {
 	Object string `json:"object"`
-	Results []struct {
-		Object string `json:"object"`
-		Id string `json:"id"`
-		LastEditedTime string `json:"last_edited_time"`
-		HasChildren bool `json:"has_children"`
-		Paragraph struct {
-			Text []struct {
-				PlainText string `json:"plain_text"`
-			} `json:"text"`
-		} `json:"paragraph"`
-	} `json:"results"`
+	Results []Result `json:"results"`
+}
+
+type Result struct {
+	Object string `json:"object"`
+	Id string `json:"id"`
+	LastEditedTime string `json:"last_edited_time"`
+	HasChildren bool `json:"has_children"`
+	Paragraph struct {
+		Text []struct {
+			PlainText string `json:"plain_text"`
+		} `json:"text"`
+	} `json:"paragraph,omitempty"`
+	Properties struct {
+		Processed struct {
+			Checkbox bool `json:"checkbox"`
+		} `json:"Processed"`
+	} `json:"properties,omitemtpy"`
+}
 }
 
 func (n Notion) Fetch(Type, ObjectId string) {
