@@ -12,8 +12,8 @@ import (
 const DatabaseType = "Database"
 const BlockType = "Block"
 
-var DatabasePath = "/databases/%s/query"
-var BlockPath = "/blocks/%s/children"
+const DatabasePath = "/databases/%s/query"
+const BlockPath = "/blocks/%s/children"
 
 var ErrTypeNotFound = errors.New("Error, could not find request type")
 
