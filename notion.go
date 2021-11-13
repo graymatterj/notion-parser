@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -48,7 +49,7 @@ type Result struct {
 
 func (n Notion) Fetch(Type, ObjectId string) {
 	requestPath, requestMethod, _ := buildRequestPath(Type, n.path, ObjectId)
-	response := fetchData(n.key, n.version, requestPath, requestMethod)
+	response := n.sendRequest(requestPath, requestMethod, nil)
 
 	log.Println("Retrieved Response from API:")
 	bodyBytes, _ := ioutil.ReadAll(response.Body)
@@ -63,8 +64,8 @@ func (n Notion) Fetch(Type, ObjectId string) {
 	fmt.Println(PrettyPrint(result))
 }
 
-func fetchData(ApiKey, ApiVersion, RequestPath, RequestType string) *http.Response{
-	req, err := http.NewRequest(RequestType, RequestPath, nil)
+func (n Notion) sendRequest(RequestPath, RequestType string, RequestBody []byte) *http.Response {
+	req, err := http.NewRequest(RequestType, RequestPath, bytes.NewBuffer(RequestBody))
 
 	if err != nil {
 		log.Fatal(err.Error())
@@ -72,8 +73,8 @@ func fetchData(ApiKey, ApiVersion, RequestPath, RequestType string) *http.Respon
 
 	// Default notion headers, required for every request
 	req.Header.Add("Content-Type", "application/json")
-	req.Header.Add("Authorization", ApiKey)
-	req.Header.Add("Notion-Version", ApiVersion)
+	req.Header.Add("Authorization", n.key)
+	req.Header.Add("Notion-Version", n.version)
 
 	client := &http.Client{}
 	response, err := client.Do(req)
