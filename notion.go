@@ -38,12 +38,20 @@ type Result struct {
 		Text []struct {
 			PlainText string `json:"plain_text"`
 		} `json:"text"`
-	} `json:"paragraph,omitempty"`
-	Properties struct {
-		Processed struct {
-			Checkbox bool `json:"checkbox"`
-		} `json:"Processed"`
-	} `json:"properties,omitemtpy"`
+	} `json:"paragraph"`
+	Properties Properties `json:"properties`
+}
+
+type RequestBody struct {
+	Properties Properties `json:"properties"`
+}
+
+type Properties struct {
+	Processed Processed `json:"Processed",omitempty`
+}
+
+type Processed struct {
+	Checkbox bool `json:"checkbox"`
 }
 
 type QueryParams struct {
@@ -54,6 +62,24 @@ type Sort struct {
 	PropertyName string `json:"property"`
 	Direction string `json:"direction"`
 }
+
+func (n Notion) updatePageStatus(id string) {
+	requestPath, requestMethod, _ := buildRequestPath(PageType, n.path, id)
+
+	properties := RequestBody{
+		Properties: Properties{
+			Processed: Processed{true},
+		},
+	}
+
+	propertiesJSON, _ := json.Marshal(properties)
+
+	response := n.sendRequest(requestPath, requestMethod, propertiesJSON)
+
+	log.Println("Retrieved Response from API:")
+	bodyBytes, _ := ioutil.ReadAll(response.Body)
+	log.Println(string(bodyBytes))
+
 }
 
 func (n Notion) Fetch(Type, ObjectId string) {
