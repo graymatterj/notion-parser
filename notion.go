@@ -45,11 +45,35 @@ type Result struct {
 		} `json:"Processed"`
 	} `json:"properties,omitemtpy"`
 }
+
+type QueryParams struct {
+	Sorts []Sort `json:"sorts"`
+}
+
+type Sort struct {
+	PropertyName string `json:"property"`
+	Direction string `json:"direction"`
+}
 }
 
 func (n Notion) Fetch(Type, ObjectId string) {
 	requestPath, requestMethod, _ := buildRequestPath(Type, n.path, ObjectId)
-	response := n.sendRequest(requestPath, requestMethod, nil)
+
+	var response *http.Response
+
+	if Type == DatabaseType {
+		query := QueryParams{
+			Sorts: []Sort{
+				Sort{"Lesson Date", "descending"},
+			},
+		}
+
+		sortsJSON, _ := json.Marshal(query)
+		response = n.sendRequest(requestPath, requestMethod, sortsJSON)
+	} else {
+		response = n.sendRequest(requestPath, requestMethod, nil)
+	}
+
 
 	log.Println("Retrieved Response from API:")
 	bodyBytes, _ := ioutil.ReadAll(response.Body)
