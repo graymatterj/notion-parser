@@ -59,6 +59,7 @@ type Processed struct {
 
 type QueryParams struct {
 	Sorts []Sort `json:"sorts"`
+	PageSize int `json:"page_size"`
 }
 
 type Sort struct {
@@ -143,6 +144,7 @@ func (n Notion) Fetch(Type, ObjectId string) {
 			Sorts: []Sort{
 				Sort{"Lesson Date", "descending"},
 			},
+			PageSize: 2,
 		}
 
 		sortsJSON, _ := json.Marshal(query)
