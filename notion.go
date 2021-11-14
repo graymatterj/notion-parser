@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"errors"
+	"strings"
 )
 
 const DatabaseType = "Database"
@@ -17,6 +18,8 @@ const PageType = "Page"
 const DatabasePath = "/databases/%s/query"
 const BlockPath = "/blocks/%s/children"
 const PagePath = "/pages/%s"
+
+const FlashcardDelimiter = "^"
 
 var ErrTypeNotFound = errors.New("Error, could not find request type")
 
@@ -69,6 +72,11 @@ type PageRecord struct {
 	Processed bool `json:"processed"`
 }
 
+type BlockRecord struct {
+	Id string `json:"id"`
+	LastEditedTime string `json:"last_edited_time"`
+	Content string `json:"content"`
+}
 
 func (n Notion) processDatabaseResponse(results []Result) (PageRecords []PageRecord) {
 	PageRecords = []PageRecord{}
@@ -82,6 +90,30 @@ func (n Notion) processDatabaseResponse(results []Result) (PageRecords []PageRec
 	}
 	return
 }
+
+func processBlockResponse(results []Result) {
+	BlockRecords := []BlockRecord{}
+	for _, result := range results {
+		for _, text := range result.Paragraph.Text {
+			if text.PlainText != "" {
+				block := BlockRecord{result.Id, result.LastEditedTime, text.PlainText}
+				if strings.Contains(text.PlainText, FlashcardDelimiter) {
+					block.createCard()
+				}
+				BlockRecords = append(BlockRecords, block)
+			}
+		}
+	}
+}
+
+func (b BlockRecord) createCard() {
+	cardValues := strings.Split(b.Content, FlashcardDelimiter)
+	word := strings.TrimSpace(cardValues[0])
+	translation := strings.TrimSpace(cardValues[1])
+	exampleSentence := strings.TrimSpace(cardValues[2])
+	fmt.Printf("%s;%s;%s;%s\n", exampleSentence, word, "JP", translation)
+}
+
 func (n Notion) updatePageStatus(id string) bool {
 	requestPath, requestMethod, _ := buildRequestPath(PageType, n.path, id)
 
@@ -122,9 +154,9 @@ func (n Notion) Fetch(Type, ObjectId string) {
 
 	log.Println("Retrieved Response from API:")
 	bodyBytes, _ := ioutil.ReadAll(response.Body)
-	log.Println(string(bodyBytes))
+	// log.Println(string(bodyBytes))
 
-	var result Response
+	var result NotionResponse
 	if err := json.Unmarshal(bodyBytes, &result); err != nil {
 		println("Unmarshal 1 failed")
 		println(err.Error())
@@ -132,6 +164,8 @@ func (n Notion) Fetch(Type, ObjectId string) {
 
 	if Type == DatabaseType {
 		n.processDatabaseResponse(result.Results)
+	} else if Type == BlockType {
+		processBlockResponse(result.Results)
 	}
 }
 
