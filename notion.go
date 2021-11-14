@@ -63,7 +63,26 @@ type Sort struct {
 	Direction string `json:"direction"`
 }
 
-func (n Notion) updatePageStatus(id string) {
+type PageRecord struct {
+	Id string `json:"id"`
+	LastEditedTime string `json:"last_edited_time"`
+	Processed bool `json:"processed"`
+}
+
+
+func (n Notion) processDatabaseResponse(results []Result) (PageRecords []PageRecord) {
+	PageRecords = []PageRecord{}
+	for _, result := range results {
+		page := PageRecord{result.Id, result.LastEditedTime, result.Properties.Processed.Checkbox}
+		if !page.Processed {
+			n.Fetch(BlockType, page.Id)
+			page.Processed = n.updatePageStatus(page.Id)
+		}
+		PageRecords = append(PageRecords, page)
+	}
+	return
+}
+func (n Notion) updatePageStatus(id string) bool {
 	requestPath, requestMethod, _ := buildRequestPath(PageType, n.path, id)
 
 	properties := RequestBody{
@@ -111,7 +130,9 @@ func (n Notion) Fetch(Type, ObjectId string) {
 		println(err.Error())
 	}
 
-	fmt.Println(PrettyPrint(result))
+	if Type == DatabaseType {
+		n.processDatabaseResponse(result.Results)
+	}
 }
 
 func (n Notion) sendRequest(RequestPath, RequestType string, RequestBody []byte) *http.Response {
